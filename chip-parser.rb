@@ -41,6 +41,10 @@ class ChipParser
     structure[:name]
   end
 
+  def ref
+    structure[:ref]
+  end
+
   def parse_raw
     @structure = {}
     @raw.split(/\n/).each do |row|
@@ -51,6 +55,8 @@ class ChipParser
         @structure[:pincount] = $1.to_i
       elsif row[/^NAME (.*)$/]
         @structure[:name] = $1
+      elsif row[/^REF (.*)$/]
+        @structure[:ref] = $1
       elsif row[/^PINPITCH ([\d\.]+)(.*)$/]
         value = $1.to_f
         unit = $2
