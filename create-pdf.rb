@@ -5,6 +5,7 @@ require_relative 'chip-parser'
 class CreatePDF
   def initialize(filenames)
     @pdf = Prawn::Document.new(page_size: "A4")
+    @page_root = @pdf.cursor
     @data = filenames.map do |file|
       ChipParser.new(file)
     end
@@ -25,15 +26,21 @@ class CreatePDF
   end
 
   def render_chip(chip, row, col)
-    (chip.pincount/2).times do |pin_row|
-      @pdf.text_box(chip.pins_left[pin_row],
-                    at: [col*@max_width, @pdf.cursor-(row*@max_height+pin_row*from_mil(chip.pinpitch))],
-                    size: font_size(chip))
-      @pdf.text_box(chip.pins_right[pin_row],
-                    at: [col*@max_width, @pdf.cursor-(row*@max_height+pin_row*from_mil(chip.pinpitch))],
-                    align: :right,
-                    width: from_mil(chip.chipwidth),
-                    size: font_size(chip))
+    @pdf.bounding_box([col*@max_width, @page_root-(row*@max_height)],
+                      width: 4+from_mil(chip.chipwidth),
+                      height: from_mil(chip.chipheight)+1) do
+      (chip.pincount/2).times do |pin_row|
+        @pdf.text_box(chip.pins_left[pin_row],
+                      at: [2,@pdf.cursor-(pin_row*from_mil(chip.pinpitch)+3)],
+                      size: font_size(chip))
+        @pdf.text_box(chip.pins_right[pin_row],
+                      at: [2,@pdf.cursor-(pin_row*from_mil(chip.pinpitch)+3)],
+                      align: :right,
+                      width: from_mil(chip.chipwidth),
+                      size: font_size(chip))
+      end
+      @pdf.line_width = 0.1
+      @pdf.stroke_bounds
     end
   end
 

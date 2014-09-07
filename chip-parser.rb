@@ -22,7 +22,11 @@ class ChipParser
   end
 
   def chipwidth
-    structure[:chipwidth]*0.85
+    structure[:chipwidth]*0.8
+  end
+
+  def chipheight
+    0.5*structure[:pincount]*structure[:pinpitch]
   end
 
   def pins_left
