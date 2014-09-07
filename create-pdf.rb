@@ -26,7 +26,14 @@ class CreatePDF
   end
 
   def render_chip(chip, row, col)
-    @pdf.bounding_box([col*@max_width, @page_root-(row*@max_height)],
+    if chip.name
+      @pdf.bounding_box([col*@max_width+(@max_width+from_mil(chip.chipwidth))/2,@page_root-(row*@max_height)],
+                        width: @max_width,
+                        height: 12) do
+        @pdf.text_box(chip.name, at: [4,6], size: 6, align: :center)
+      end
+    end
+    @pdf.bounding_box([col*@max_width+@max_width, @page_root-(row*@max_height)-12],
                       width: 4+from_mil(chip.chipwidth),
                       height: from_mil(chip.chipheight)+1) do
       (chip.pincount/2).times do |pin_row|
