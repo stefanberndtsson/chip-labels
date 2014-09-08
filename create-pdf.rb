@@ -26,8 +26,12 @@ class CreatePDF
   end
 
   def render_chip(chip, row, col)
+    fontsz = font_size(chip)
+    chipwidth = from_mil(chip.chipwidth)
+    chipheight = from_mil(chip.chipheight)
+    pinpitch = from_mil(chip.pinpitch)
     if chip.name
-      @pdf.bounding_box([col*@max_width+(@max_width+from_mil(chip.chipwidth))/2,@page_root-(row*@max_height)],
+      @pdf.bounding_box([col*@max_width+(@max_width+chipwidth)/2,@page_root-(row*@max_height)],
                         width: @max_width,
                         height: 12) do
         @pdf.text_box(chip.name, at: [4,6], size: 6, align: :center)
@@ -35,17 +39,31 @@ class CreatePDF
       end
     end
     @pdf.bounding_box([col*@max_width+@max_width, @page_root-(row*@max_height)-12],
-                      width: 4+from_mil(chip.chipwidth),
-                      height: from_mil(chip.chipheight)+1) do
+                      width: 4+chipwidth,
+                      height: chipheight+1) do
       (chip.pincount/2).times do |pin_row|
-        @pdf.text_box(chip.pins_left[pin_row],
-                      at: [2,@pdf.cursor-(pin_row*from_mil(chip.pinpitch)+3)],
-                      size: font_size(chip))
-        @pdf.text_box(chip.pins_right[pin_row],
-                      at: [2,@pdf.cursor-(pin_row*from_mil(chip.pinpitch)+3)],
+        left = chip.pins_left[pin_row]
+        if left[0..0] == "/"
+          left = left[1..-1]
+          left_width = @pdf.width_of(left, size: fontsz, kerning: true)
+          @pdf.line([2,@pdf.cursor-(pin_row*pinpitch+2)], [left_width+2,@pdf.cursor-(pin_row*pinpitch+2)])
+        end
+        @pdf.text_box(left,
+                      at: [2,@pdf.cursor-(pin_row*pinpitch+3)],
+                      size: fontsz)
+
+
+        right = chip.pins_right[pin_row]
+        if right[0..0] == "/"
+          right = right[1..-1]
+          right_width = @pdf.width_of(right, size: fontsz, kerning: true)
+          @pdf.line([2+chipwidth-right_width,@pdf.cursor-(pin_row*pinpitch+2)], [2+chipwidth,@pdf.cursor-(pin_row*pinpitch+2)])
+        end
+        @pdf.text_box(right,
+                      at: [2,@pdf.cursor-(pin_row*pinpitch+3)],
                       align: :right,
-                      width: from_mil(chip.chipwidth),
-                      size: font_size(chip))
+                      width: chipwidth,
+                      size: fontsz)
       end
       @pdf.line_width = 0.1
       @pdf.stroke_bounds
