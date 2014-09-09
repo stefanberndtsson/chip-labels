@@ -20,7 +20,7 @@ class CreatePDF
   def render
     @data.each.with_index do |chip_row,row|
       chip_row.each.with_index do |chip,col|
-        render_chip(chip, row, col)
+        render_chip(chip, row, col-1)
       end
     end
   end
